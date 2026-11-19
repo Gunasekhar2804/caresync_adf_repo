@@ -4,7 +4,7 @@
 		"activities": [
 			{
 				"name": "Copy data1",
-				"description": "this is a change in description",
+				"description": "this is a change in description updated by guna",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {

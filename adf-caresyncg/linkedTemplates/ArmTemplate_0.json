@@ -1600,7 +1600,7 @@
 							"waitOnCompletion": true,
 							"parameters": {
 								"adf_run_id": {
-									"value": "pipeline().RunId",
+									"value": "@pipeline().RunId",
 									"type": "Expression"
 								}
 							}

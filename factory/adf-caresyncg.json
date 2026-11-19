@@ -1,0 +1,12 @@
+{
+	"name": "adf-caresyncg",
+	"properties": {
+		"globalParameters": {
+			"email_recipient": {
+				"type": "string",
+				"value": "gunasekhar2804@tcs.com"
+			}
+		}
+	},
+	"location": "centralindia"
+}

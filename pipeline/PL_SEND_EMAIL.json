@@ -55,23 +55,103 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "body_header",
-					"value": "Ingestion and transformation process for caresync project has been completed and below is the status."
+					"variableName": "body_footer",
+					"value": "For any support reach out to abc@gmail.com"
 				}
 			},
 			{
-				"name": "Prepare email body Footer_copy1",
+				"name": "Prepare email Subject",
 				"description": "For any support please reach out to abc@gmail.com",
 				"type": "SetVariable",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Check overall Failed Count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"secureOutput": false,
 					"secureInput": false
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "body_header",
-					"value": "Ingestion and transformation process for caresync project has been completed and below is the status."
+					"variableName": "email_subject",
+					"value": {
+						"value": "@{pipeline().globalParameters.env} | @{if(greater(activity('Check overall Failed Count').output.firstRow.count,0),'FAILED','SUCCESS')} | CARESYNC MASTER RUN|",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Check overall Failed Count",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT COUNT(*) from ctrl.audit_log where adf_run_id= '@{pipeline().parameters.adf_run_id}' and status  != 'SUCCESS'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Prepare Logic apps body",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Read All tables status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Prepare email body Header",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Prepare email body Footer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Prepare email Subject",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "Logic_Apps_Body",
+					"value": {
+						"value": "{\n\"subject\":\"@{variables('email_subject')}\",\n\"email recepients\":\"@{pipeline().globalParameters.email_recipient}\",\n\"body_header\":\"@{variables('body_header')}\",\n\"body_footer\":\"@{variables('body_footer')}\",\n\"status_table\":activity('Read All tables status').output.value\n}\n",
+						"type": "Expression"
+					}
 				}
 			}
 		],
@@ -83,6 +163,15 @@
 		},
 		"variables": {
 			"body_header": {
+				"type": "String"
+			},
+			"email_subject": {
+				"type": "String"
+			},
+			"Logic_Apps_Body": {
+				"type": "String"
+			},
+			"body_footer": {
 				"type": "String"
 			}
 		},
